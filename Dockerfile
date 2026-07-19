@@ -1,32 +1,16 @@
-FROM php:8.1-apache
+FROM php:8.1-cli
 
-# Install required PHP extensions
-RUN docker-php-ext-install mysqli sockets
+# Install mysqli extension for database connectivity
+RUN docker-php-ext-install mysqli
 
-# Enable Apache mod_rewrite
-RUN a2enmod rewrite
-
-# Ensure exactly one MPM is loaded (fixes "More than one MPM loaded").
-# Remove any enabled MPM symlinks first, then enable exactly one.
-RUN rm -f /etc/apache2/mods-enabled/mpm_*.load /etc/apache2/mods-enabled/mpm_*.conf \
-    && a2enmod mpm_prefork \
-    && apache2ctl -t
-
-# Copy all project files
-COPY . /var/www/html/
-
-# Copy and make startup script executable
-COPY start.sh /start.sh
-RUN chmod +x /start.sh
+# Copy all project files into /app
+COPY . /app
 
 # Set working directory
-WORKDIR /var/www/html
+WORKDIR /app
 
-# Fix permissions
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 /var/www/html
-
-# Railway sets $PORT dynamically — Apache will bind to it via start.sh
+# Expose default port (Railway overrides with $PORT)
 EXPOSE 80
 
-CMD ["/start.sh"]
+# Use PHP's built-in server — it automatically reads $PORT
+CMD php -S 0.0.0.0:${PORT:-80} -t /app
