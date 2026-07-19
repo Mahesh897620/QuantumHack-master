@@ -15,6 +15,10 @@ RUN rm -f /etc/apache2/mods-enabled/mpm_*.load /etc/apache2/mods-enabled/mpm_*.c
 # Copy all project files
 COPY . /var/www/html/
 
+# Copy and make startup script executable
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
+
 # Set working directory
 WORKDIR /var/www/html
 
@@ -22,8 +26,7 @@ WORKDIR /var/www/html
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html
 
-# Use environment variables for DB connection (set in Railway dashboard)
-# DB_HOST, DB_USER, DB_PASS, DB_NAME
-
+# Railway sets $PORT dynamically — Apache will bind to it via start.sh
 EXPOSE 80
-CMD ["apache2-foreground"]
+
+CMD ["/start.sh"]
