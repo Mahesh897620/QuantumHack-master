@@ -6,6 +6,10 @@ RUN docker-php-ext-install mysqli sockets
 # Enable Apache mod_rewrite
 RUN a2enmod rewrite
 
+# Ensure exactly one MPM is loaded (fixes "More than one MPM loaded")
+RUN a2dismod mpm_event mpm_worker 2>/dev/null || true \
+    && a2enmod mpm_prefork
+
 # Copy all project files
 COPY . /var/www/html/
 
